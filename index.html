@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Importance Weighted On-Policy Distillation project page">
+  <meta name="keywords" content="IW-OPD, On-Policy Distillation, Knowledge Distillation, Reasoning Models">
+  <title>Importance Weighted On-Policy Distillation</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["\\(", "\\)"]],
+        displayMath: [["\\[", "\\]"]],
+        processEscapes: true
+      },
+      svg: {
+        fontCache: "global"
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface-soft: #f3f6f8;
+      --ink: #111111;
+      --muted: #62676d;
+      --border: #e1e5e8;
+      --accent: #DA9BB2;
+      --accent-soft: #f7e7ee;
+      --green: #0c7a43;
+      --green-soft: #e6f4ec;
+      --amber: #a05700;
+      --amber-soft: #fff2de;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .grid-bg {
+      display: none;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .hero {
+      padding: 4rem 1.5rem 3rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .hero-content {
+      width: min(980px, 100%);
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      margin: 0 auto 1rem;
+      max-width: 900px;
+      font-size: 2.75rem;
+      line-height: 1.12;
+      font-weight: 680;
+    }
+
+    .title-pink {
+      color: var(--accent);
+    }
+
+    .title-black {
+      color: var(--ink);
+    }
+
+    .hero-subtitle {
+      margin: 0 auto;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .authors {
+      margin: 2rem auto 0;
+      max-width: 860px;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    .authors strong {
+      font-weight: 620;
+    }
+
+    .affiliations {
+      margin-top: 0.6rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 2.2rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 42px;
+      padding: 0.58rem 1.05rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.93rem;
+      font-weight: 560;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      flex: 0 0 auto;
+    }
+
+    .btn:hover {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--surface);
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--surface);
+    }
+
+    .btn-primary:hover {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .section {
+      padding: 4.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-of-type {
+      border-bottom: 0;
+    }
+
+    .container {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+    }
+
+    .section-header {
+      margin-bottom: 2.4rem;
+    }
+
+    .section-label {
+      margin-bottom: 0.55rem;
+      color: var(--muted);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      margin: 0;
+      max-width: 760px;
+      font-size: 2rem;
+      line-height: 1.2;
+      font-weight: 660;
+    }
+
+    .section-subtitle {
+      margin: 0.75rem 0 0;
+      max-width: 720px;
+      color: var(--muted);
+    }
+
+    .abstract {
+      max-width: 830px;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.8;
+    }
+
+    .abstract p {
+      margin: 0;
+    }
+
+    .abstract p + p {
+      margin-top: 1rem;
+    }
+
+    .abstract strong {
+      color: var(--ink);
+      font-weight: 620;
+    }
+
+    #Overview .abstract,
+    #Overview .intro-figures {
+      width: 100%;
+      max-width: none;
+    }
+
+    .figure-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+
+    .figure-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .intro-figures {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+      max-width: 940px;
+    }
+
+    .intro-figures img,
+    .simple-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #ffffff;
+    }
+
+    .figure-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .figure-panel.large {
+      grid-column: 1 / -1;
+    }
+
+    .figure-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 54px;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .figure-kicker {
+      color: var(--accent);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .figure-title {
+      margin: 0.15rem 0 0;
+      font-size: 1rem;
+      line-height: 1.35;
+      font-weight: 620;
+    }
+
+    .figure-body {
+      padding: 1rem;
+      background: #ffffff;
+    }
+
+    .figure-body img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #ffffff;
+    }
+
+    .diagnostic-figure {
+      padding: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .diagnostic-figure img {
+      display: block;
+      width: min(72%, 360px);
+      margin: 0 auto;
+      height: auto;
+      background: #ffffff;
+    }
+
+    .figure-caption {
+      margin: 0.8rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .challenge-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    .content-block {
+      padding: 1.45rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .challenge-layout .content-block,
+    .challenge-layout .diagnostic-figure {
+      height: 100%;
+    }
+
+    .content-block h3 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 0 0 1rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.08rem;
+      line-height: 1.3;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0.2rem 0.45rem;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.72rem;
+      font-weight: 650;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .plain-label {
+      color: var(--muted);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      font-weight: 560;
+      text-transform: uppercase;
+    }
+
+    .tag-problem {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .tag-method {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .tag-result {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .tag-note {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .content-block p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .content-block p + p {
+      margin-top: 0.85rem;
+    }
+
+    .content-block ul {
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .content-block li {
+      position: relative;
+      margin: 0.72rem 0 0;
+      padding-left: 1.15rem;
+      color: var(--muted);
+    }
+
+    .content-block li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.72em;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+    }
+
+    .content-block strong {
+      color: var(--ink);
+      font-weight: 620;
+    }
+
+    .derivation {
+      display: grid;
+      gap: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .equation-card {
+      padding: 1.15rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      overflow-x: auto;
+    }
+
+    .equation-label {
+      margin-bottom: 0.45rem;
+      color: var(--muted);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+
+    .formula {
+      margin: 0;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 1.08rem;
+      line-height: 1.75;
+    }
+
+    .math-block {
+      overflow-x: auto;
+      padding: 0.15rem 0;
+    }
+
+    .math-block mjx-container {
+      margin: 0 !important;
+      text-align: left !important;
+    }
+
+    .formula-note {
+      margin-top: 0.45rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .feature-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 1.25rem;
+      border: 1px solid var(--border);
+      background: var(--border);
+    }
+
+    .feature-item {
+      min-height: 150px;
+      padding: 1.4rem;
+      background: var(--surface);
+    }
+
+    .feature-item h4 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+    }
+
+    .feature-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .result-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .result-table-wrap + .result-table-wrap {
+      margin-top: 1.25rem;
+    }
+
+    .table-title {
+      margin: 0;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 620;
+    }
+
+    .results-images {
+      display: grid;
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .results-images img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #ffffff;
+    }
+
+    .small-table {
+      max-width: 520px;
+    }
+
+    .small-table table {
+      min-width: 0;
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+      font-size: 0.93rem;
+    }
+
+    th,
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    td.num,
+    th.num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th {
+      background: var(--surface-soft);
+      font-weight: 640;
+      color: var(--ink);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .gain {
+      color: var(--green);
+      font-weight: 670;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .bibtex-block {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .bibtex-header {
+      display: flex;
+      gap: 0.45rem;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-soft);
+    }
+
+    .bibtex-header span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .bibtex-header span:nth-child(1) {
+      background: #ff5f56;
+    }
+
+    .bibtex-header span:nth-child(2) {
+      background: #ffbd2e;
+    }
+
+    .bibtex-header span:nth-child(3) {
+      background: #27c93f;
+    }
+
+    .bibtex-body {
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    .bibtex-body pre {
+      margin: 0;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    .footer {
+      padding: 2.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.88rem;
+    }
+
+    .reveal,
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        padding-top: 3.25rem;
+      }
+
+      .hero h1 {
+        font-size: 2.05rem;
+      }
+
+      .intro-figures,
+      .challenge-layout,
+      .figure-grid,
+      .figure-grid.three,
+      .two-col,
+      .feature-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body {
+        font-size: 15px;
+      }
+
+      .hero {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .hero h1 {
+        font-size: 1.72rem;
+      }
+
+      .hero-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .btn {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .section {
+        padding: 3.6rem 1rem;
+      }
+
+      .section-title {
+        font-size: 1.55rem;
+      }
+
+      .content-block h3,
+      .figure-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .diagnostic-figure img {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1 class="reveal active"><span class="title-pink">Importance Weighted</span> <span class="title-black">On-Policy Distillation</span></h1>
+      <p class="hero-subtitle reveal active">
+        IW-OPD reallocates token-level teacher supervision toward student-sampled prefixes where the teacher can still provide actionable reasoning guidance.
+      </p>
+
+      <div class="authors reveal active">
+        <strong>Yan Xie</strong><sup>1,*</sup> &middot;
+        <strong>Sijie Zhu</strong><sup>1,*</sup> &middot;
+        <strong>Tiansheng Wen</strong><sup>2</sup> &middot;
+        <strong>Bo Chen</strong><sup>1</sup> &middot;
+        <strong>Yifei Wang</strong><sup>3</sup>
+        <div class="affiliations">
+          <sup>1</sup>Xidian University &middot;
+          <sup>2</sup>Georgia Institute of Technology &middot;
+          <sup>3</sup>Amazon AGI SF Lab
+        </div>
+      </div>
+
+      <div class="hero-actions reveal active">
+        <a class="btn" href="https://github.com/YannX1e/Importance-Weighted-On-Policy-Distillation" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-6.1 0-1.3-.5-2.5-1.3-3.4.1-.4.5-1.8-.1-3.4 0 0-1-.3-3.5 1.3a12.2 12.2 0 0 0-6.2 0C6.4 1.3 5.4 1.6 5.4 1.6c-.6 1.6-.2 3-.1 3.4A4.8 4.8 0 0 0 4 8.4c0 4.1 3 6.1 6 6.1-.4.4-.8 1-.9 2-.8.4-2.8 1-4.1-1.1 0 0-.7-1.3-2-1.4"></path></svg>
+          Code
+        </a>
+        <a class="btn" href="https://huggingface.co/IW-OPD" target="_blank" rel="noopener">
+          <span aria-hidden="true">🤗</span>
+          Model
+        </a>
+        <a class="btn" href="#BibTeX">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"></path><path d="M16 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path><path d="M9 7h6"></path><path d="M9 12h6"></path><path d="M9 17h4"></path></svg>
+          BibTeX
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="Overview">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">01 / Overview</div>
+        <h2 class="section-title">Dense OPD supervision is useful, but not every token deserves the same update budget.</h2>
+      </div>
+      <div class="abstract reveal">
+        <p>
+          On-Policy Distillation replaces sparse trajectory-level rewards with dense token-level supervision from a teacher model. Standard OPD, however, averages per-token KL terms uniformly, assuming every student-sampled prefix is equally useful.
+        </p>
+        <p>
+          IW-OPD shows this assumption is false: teacher continuation accuracy decreases as cumulative prefix divergence grows. The method treats OPD as a constrained local projection and derives a prefix-dependent importance rule that prioritizes teacher-compatible prefixes.
+        </p>
+        <p>
+          The practical algorithm uses cumulative prefix KL as a stable, stop-gradient surrogate. It is a lightweight modification to OPD code, requires no extra model evaluations, and improves convergence and final quality in same-size and cross-scale distillation.
+        </p>
+      </div>
+      <div class="intro-figures reveal">
+        <img src="assets/figures/training_aime25.png" alt="AIME25 accuracy during training">
+        <img src="assets/figures/compression_ratio.png" alt="Final accuracy versus student teacher compression ratio">
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="Challenge">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">02 / Challenge</div>
+        <h2 class="section-title">Student rollouts contain teacher-compatible and drifted prefixes in the same trajectory.</h2>
+        <p class="section-subtitle">
+          Uniform weighting spends the same gradient budget on both, even though their supervision value is very different.
+        </p>
+      </div>
+
+      <div class="challenge-layout">
+        <div class="content-block reveal">
+          <h3>Uniform OPD <span class="plain-label">Limitation</span></h3>
+          <p>
+            Standard OPD aggregates token KL terms with equal weight. In long reasoning trajectories, an early student deviation can push later prefixes into regions where the teacher's next-token distribution is no longer a useful correction.
+          </p>
+          <p>
+            The token-budget, residual-gap, and across-position analyses below are further observations that support this limitation: useful supervision is concentrated, and the residual mismatch remains heterogeneous rather than becoming uniformly useful.
+          </p>
+          <ul>
+            <li><strong>Low-divergence prefixes:</strong> teacher and student still condition on similar histories.</li>
+            <li><strong>High-divergence prefixes:</strong> the student has drifted away, so teacher guidance has less leverage.</li>
+            <li><strong>Finite-step training:</strong> each update should spend budget where correction is actionable.</li>
+          </ul>
+        </div>
+
+        <div class="diagnostic-figure reveal">
+            <div class="figure-kicker">Diagnostic</div>
+            <h3 class="figure-title">Continuation accuracy gap</h3>
+            <img src="assets/figures/prefix_gap.png" alt="Teacher and student continuation accuracy from student sampled prefixes">
+            <p class="figure-caption">
+              The teacher advantage is largest on low-divergence prefixes and shrinks as cumulative prefix divergence grows.
+            </p>
+        </div>
+      </div>
+
+      <div class="figure-grid three" style="margin-top: 1.25rem;">
+        <div class="figure-panel reveal">
+          <div class="figure-head">
+            <div>
+              <div class="figure-kicker">Further Observation / Token Budget</div>
+              <h3 class="figure-title">Low-divergence tokens learn</h3>
+            </div>
+          </div>
+          <div class="figure-body">
+            <img src="assets/figures/token_selection.png" alt="Token selection training comparison">
+            <p class="figure-caption">
+              With the same 30% token budget, Low-Div training matches or beats standard OPD, while High-Div nearly collapses.
+            </p>
+          </div>
+        </div>
+
+        <div class="figure-panel reveal">
+          <div class="figure-head">
+            <div>
+              <div class="figure-kicker">Further Observation / Residual Gap</div>
+              <h3 class="figure-title">Mean KL plateaus</h3>
+            </div>
+          </div>
+          <div class="figure-body">
+            <img src="assets/figures/mean_kl.png" alt="Mean token-level KL during training">
+            <p class="figure-caption">
+              OPD reduces the mismatch, but the token-level signal remains non-zero after performance plateaus.
+            </p>
+          </div>
+        </div>
+
+        <div class="figure-panel reveal">
+          <div class="figure-head">
+            <div>
+              <div class="figure-kicker">Further Observation / Across Positions</div>
+              <h3 class="figure-title">Mismatch persists</h3>
+            </div>
+          </div>
+          <div class="figure-body">
+            <img src="assets/figures/token_kl.png" alt="Per-token KL across response positions">
+            <p class="figure-caption">
+              Residual teacher-student mismatch is not confined to one stage of the response.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="Method">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">03 / Method</div>
+        <h2 class="section-title">IW-OPD converts prefix compatibility into a stable token-level multiplier.</h2>
+        <p class="section-subtitle">
+          The ideal weight comes from a constrained projection view; the practical weight keeps the ordering while removing raw likelihood-ratio variance.
+        </p>
+      </div>
+
+      <div class="content-block reveal">
+        <h3>From local projection to ideal weight <span class="plain-label">Derivation</span></h3>
+        <p>
+          OPD is a finite-step update, so we first ask for the teacher-closest distribution that is still reachable from the current student. The constrained projection is
+        </p>
+        <div class="derivation">
+          <div class="equation-card">
+            <div class="equation-label">Local target</div>
+            <div class="math-block">
+              \[
+              Q_\theta^\star
+              =
+              \arg\min_Q D_{\mathrm{KL}}(Q \,\|\, P_T),
+              \quad
+              \mathrm{s.t.}\;
+              D_{\mathrm{KL}}(Q \,\|\, P_\theta) \le \rho .
+              \]
+            </div>
+          </div>
+          <div class="equation-card">
+            <div class="equation-label">Solution</div>
+            <div class="math-block">
+              \[
+              Q_\theta^\star(y)
+              \propto
+              P_\theta(y)^{1-\alpha}P_T(y)^\alpha
+              =
+              P_\theta(y)
+              \left(\frac{P_T(y)}{P_\theta(y)}\right)^\alpha .
+              \]
+            </div>
+          </div>
+          <div class="equation-card">
+            <div class="equation-label">Ideal prefix weight</div>
+            <div class="math-block">
+              \[
+              w_t^\star(y_{&lt;t})
+              =
+              \left(\frac{P_T(y_{&lt;t})}{P_\theta(y_{&lt;t})}\right)^\alpha
+              =
+              \prod_{k&lt;t}
+              \left(
+              \frac{\pi_T(y_k \mid y_{&lt;k})}
+                   {\pi_\theta(y_k \mid y_{&lt;k})}
+              \right)^\alpha .
+              \]
+            </div>
+            <p class="formula-note">
+              This gives the desired ordering: prefixes more compatible with the teacher receive more OPD update budget.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="figure-grid three" style="margin-top: 1.25rem;">
+        <div class="figure-panel reveal">
+          <div class="figure-head">
+            <div>
+              <div class="figure-kicker">Ablation</div>
+              <h3 class="figure-title">Raw ideal weight is unstable</h3>
+            </div>
+          </div>
+          <div class="figure-body">
+            <img src="assets/figures/ideal_weight_training.png" alt="Direct ideal-weight training comparison">
+          </div>
+        </div>
+
+        <div class="figure-panel reveal">
+          <div class="figure-head">
+            <div>
+              <div class="figure-kicker">Proxy Design</div>
+              <h3 class="figure-title">Signed terms can cancel</h3>
+            </div>
+          </div>
+          <div class="figure-body">
+            <img src="assets/figures/signed_cancellation.png" alt="Signed per-token log probability difference">
+          </div>
+        </div>
+
+        <div class="figure-panel reveal">
+          <div class="figure-head">
+            <div>
+              <div class="figure-kicker">Normalization</div>
+              <h3 class="figure-title">Scale varies by trajectory</h3>
+            </div>
+          </div>
+          <div class="figure-body">
+            <img src="assets/figures/scale_variation.png" alt="Trajectory cumulative absolute increment scale variation">
+          </div>
+        </div>
+      </div>
+
+      <div class="content-block reveal" style="margin-top: 1.25rem;">
+        <h3>Practical surrogate <span class="plain-label">Final rule</span></h3>
+        <p>
+          The raw prefix likelihood ratio is too high variance, signed log-ratios can cancel earlier mismatches, and absolute prefix drift has different scales across trajectories. IW-OPD therefore keeps only the causal ordering and normalizes within each rollout.
+        </p>
+        <div class="derivation">
+          <div class="equation-card">
+            <div class="equation-label">Surrogate prefix drift</div>
+            <div class="math-block">
+              \[
+              \delta_k
+              =
+              \left|
+              \log \pi_T(y_k \mid x,y_{&lt;k})
+              -
+              \log \pi_\theta(y_k \mid x,y_{&lt;k})
+              \right|,
+              \qquad
+              C_t=\sum_{k&lt;t}\delta_k .
+              \]
+            </div>
+          </div>
+          <div class="equation-card">
+            <div class="equation-label">IW-OPD weight and advantage</div>
+            <div class="math-block">
+              \[
+              w_t
+              =
+              1-\frac{C_t}{\sum_{k=1}^{T}\delta_k+\varepsilon},
+              \qquad
+              A_t^{\mathrm{IW\!-\!OPD}}
+              =
+              A_t^{\mathrm{OPD}} + w_t A_t^{\mathrm{OPD}} .
+              \]
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="Results">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">04 / Results</div>
+        <h2 class="section-title">IW-OPD improves both sample efficiency and final distillation quality.</h2>
+        <p class="section-subtitle">
+          The gains are largest when the student has limited overlap with the teacher's preferred reasoning region.
+        </p>
+      </div>
+
+      <div class="results-images reveal">
+        <img src="assets/figures/result_1.png" alt="Main experiment result table 1">
+        <img src="assets/figures/result_2.png" alt="Main experiment result table 2">
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="BibTeX">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">05 / Citation</div>
+        <h2 class="section-title">Reference</h2>
+        <p class="section-subtitle">If this work is useful, please cite the paper.</p>
+      </div>
+
+      <div class="bibtex-block reveal">
+        <div class="bibtex-header"><span></span><span></span><span></span></div>
+        <div class="bibtex-body">
+          <pre>@article{xie2026importanceweightedopd,
+  title  = {Importance Weighted On-Policy Distillation},
+  author = {Xie, Yan and Zhu, Sijie and Wen, Tiansheng and Chen, Bo and Wang, Yifei},
+  year   = {2026}
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Importance Weighted On-Policy Distillation</p>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("active");
+        } else {
+          entry.target.classList.remove("active");
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+
+    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+  </script>
+</body>
+</html>
