@@ -727,7 +727,7 @@
           <li><a href="#surrogate">The practical surrogate</a></li>
           <li><a href="#experiments">Experiments</a></li>
           <li><a href="#ablations">Ablations</a></li>
-          <li><a href="#limitations">Limitations</a></li>
+          <li><a href="#discussion">Discussion</a></li>
           <li><a href="#conclusion">Conclusion</a></li>
           <li><a href="#citation">Citation</a></li>
         </ul>
@@ -1209,13 +1209,11 @@ advantage_t = stop_gradient(1 + gamma * w_t) * opd_advantage_t</code></pre>
 
         <p>The final group shows why we keep OPD as a floor. The practical surrogate works best as extra budget on top of standard OPD, not as a replacement for dense supervision.</p>
 
-        <h2 id="limitations">Limitations</h2>
+        <h2 id="discussion">Discussion</h2>
 
-        <p>Many sequence learning problems have appealing sequence-level objectives, and our constrained view points to one such target for OPD. In practice, directly optimizing sequence-level objectives can be unstable, especially in long-reasoning or multi-turn settings where small local errors compound across the trajectory. Standard OPD already uses a token-level proxy for the desired sequence-level behavior, and IW-OPD should be understood in the same spirit: a practical proxy motivated by the sequence-level principle, not an exact solution. Designing more faithful and stable sequence-level objectives for OPD remains an open direction.</p>
+        <p>The key insight of this work is that OPD supervision is not uniformly reliable along a student-generated trajectory. This creates an <strong>asymmetric position bias</strong>: teacher supervision is often more useful near the beginning of the rollout than near the end. Such bias is not unique to OPD. It may also appear in many methods involving two autoregressive sequence models, such as on-policy RL where samples are drawn from the current policy but updates move toward a new policy. The issue is especially visible in OPD because the teacher-student distribution gap is not known in advance, so we cannot predefine where their trajectories remain compatible.</p>
 
-        <p>The weighting also has a residual shape: as the student and teacher become more aligned, $w_t$ approaches a roughly position-based profile rather than becoming perfectly uniform. This is mild in the reported experiments, but it remains a limitation of the surrogate.</p>
-
-        <p>The empirical scope is specific. We evaluate Qwen3-family students and teachers on math and code distillation, with an additional stronger-teacher experiment. Broader validation across model families, tasks, longer training runs, and larger production-scale settings remains future work.</p>
+        <p>This also highlights a broader tension in sequence optimization. Many theoretical objectives are naturally defined at the sequence level, including the constrained projection view used in this paper. However, directly <strong>optimizing sequence-level objectives</strong> in autoregressive models is often unstable. Long trajectories' sequence-level likelihood ratios can have high variance. Standard OPD already uses a token-level proxy in practice by ignoring the return-to-go part of the gradient. IW-OPD follows the same philosophy. Since it needs to estimate prefix-level sequence discrepancy, it uses a smoother cumulative-discrepancy proxy rather than the exact likelihood ratio. How to estimate and optimize more faithful sequence-level targets in a stable way remains an important open problem.</p>
 
         <h2 id="conclusion">Conclusion</h2>
 
