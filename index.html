@@ -109,6 +109,39 @@
       font-size: 14px;
     }
 
+    .publish-metadata sup,
+    .paper-affiliations sup,
+    .paper-footnotes sup {
+      font-size: 0.72em;
+      line-height: 0;
+    }
+
+    .paper-affiliations,
+    .paper-footnotes {
+      color: var(--muted);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+
+    .paper-affiliations {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 16px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .paper-footnotes {
+      margin-top: 5px;
+      font-size: 12px;
+      max-width: 760px;
+    }
+
+    .paper-footnotes span {
+      display: block;
+      margin-top: 2px;
+    }
+
     .post-cover {
       width: calc(100% - 28px);
       max-width: 940px;
@@ -231,6 +264,15 @@
 
     article.content p {
       margin: 0 0 1.1rem;
+      text-align: justify;
+    }
+
+    article.content figcaption,
+    article.content .note,
+    article.content .equation-block,
+    article.content .table-scroll,
+    article.content .code {
+      text-align: initial;
     }
 
     article.content > p:first-child {
@@ -523,6 +565,20 @@
         margin-bottom: 7px;
       }
 
+      .paper-affiliations {
+        display: block;
+        font-size: 12px;
+      }
+
+      .paper-affiliations span {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .paper-footnotes {
+        font-size: 11px;
+      }
+
       .cover-grid,
       .figure-grid,
       .figure-grid.three {
@@ -609,8 +665,18 @@
       </h1>
       <p class="dek">Analysis position bias through the lens of constrained-optimization and reweighting OPD via prefix-importance.</p>
       <div class="publish-metadata">
-        <span>Yan Xie, Sijie Zhu, Tiansheng Wen, Bo Chen, Yifei Wang</span>
+        <span>Yan Xie<sup>1*</sup>, Sijie Zhu<sup>1*</sup>, Tiansheng Wen<sup>2</sup>, Bo Chen<sup>1,&dagger;</sup>, Yifei Wang<sup>3,&dagger;</sup></span>
         <span>June 2026</span>
+      </div>
+      <div class="paper-affiliations">
+        <span><sup>1</sup>Xidian University</span>
+        <span><sup>2</sup>Georgia Institute of Technology</span>
+        <span><sup>3</sup>Amazon AGI SF Lab</span>
+      </div>
+      <div class="paper-footnotes">
+        <span><sup>*</sup>Equal Contribution. {yanxie940, zsj200454}@gmail.com</span>
+        <span><sup>&dagger;</sup>Corresponding Authors: Bo Chen (bchen@mail.xidian.edu.cn) and Yifei Wang (yifeiwg@amazon.com).</span>
+        <span>Acknowledgement: This work was conducted outside of Amazon.</span>
       </div>
     </div>
 
@@ -668,7 +734,7 @@
       </nav>
 
       <article class="content">
-        <p>On-policy distillation (OPD) is attractive because it combines two useful ingredients: the student trains on its own rollouts, and the teacher gives dense token-level feedback on those rollouts. This is why OPD has become a natural alternative to sparse reward-only reinforcement learning for post-training language models.</p>
+        <p>On-policy distillation (OPD) is attractive since it combines two useful ingredients: the student trains on its own rollouts, and the teacher gives dense token-level feedback on those rollouts. This is why OPD has become a natural alternative to sparse reward-only reinforcement learning for post-training language models.</p>
 
         <p>In our work, we study a less obvious question: once we have dense teacher feedback, where in the response is that feedback actually useful? OPD does not only depend on how many student rollouts we collect. It also depends on whether the teacher signal lands on positions where it can still guide the student toward better reasoning.</p>
 
@@ -807,7 +873,7 @@
           D_{\mathrm{KL}}(q_\theta^\star\|\pi_T).$$
         </div>
 
-        <p>Because the projection stays on the boundary of the local KL ball, we can decompose this objective as a fixed local-budget term plus an expectation under $q_\theta^\star$. This is the three-line step that turns the finite-budget view into an importance-weighted objective:</p>
+        <p>Since the projection stays on the boundary of the local KL ball, we can decompose this objective as a fixed local-budget term plus an expectation under $q_\theta^\star$. This is the three-line step that turns the finite-budget view into an importance-weighted objective:</p>
 
         <div class="equation-block">
           $$\begin{aligned}
@@ -913,7 +979,7 @@
           <div class="figure-card">
             <img src="blog_assets/ideal_weight.pdf.png" alt="Raw prefix weight values across token positions for different alpha values.">
           </div>
-          <figcaption><strong>Question: what does the raw prefix weight do token by token?</strong> The raw prefix ratio can decrease with position, which matches the position-bias intuition, but it can also be overly concentrated or rebound locally because signed log-probability gaps cancel. This is not a stable coefficient to plug into every update.</figcaption>
+          <figcaption><strong>Question: what does the raw prefix weight do token by token?</strong> The raw prefix ratio can decrease with position, which matches the position-bias intuition, but it can also be overly concentrated or rebound locally due to signed log-probability gaps cancel. This is not a stable coefficient to plug into every update.</figcaption>
         </figure>
 
         <p>To avoid signed cancellation, we measure accumulated mismatch with an unsigned token-wise gap. We compute the OPD token gap, take its absolute value, and normalize the cumulative sum within the rollout:</p>
@@ -1018,7 +1084,7 @@ advantage_t = stop_gradient(1 + gamma * w_t) * opd_advantage_t</code></pre>
             <img src="blog_assets/training_comparison_1.pdf.png" alt="AIME 2025 accuracy during training for OPD and IW-OPD.">
             <img src="blog_assets/pace_comparison.pdf.png" alt="Final score versus compression ratio for standard OPD and IW-OPD.">
           </div>
-          <figcaption><strong>Learning curve and scale comparison.</strong> The training curve shows faster AIME25 improvement in the plotted setting. The compression-ratio plot summarizes final performance for a 4B teacher across student scales; it should be read together with the full tables below because effective prefix overlap is not determined by parameter ratio alone.</figcaption>
+          <figcaption><strong>Learning curve and scale comparison.</strong> The training curve shows faster AIME25 improvement in the plotted setting. The compression-ratio plot summarizes final performance for a 4B teacher across student scales.</figcaption>
         </figure>
 
         <h3>Qwen3-30B-A3B teacher</h3>
@@ -1084,6 +1150,34 @@ advantage_t = stop_gradient(1 + gamma * w_t) * opd_advantage_t</code></pre>
         <figcaption>Distillation from Qwen3-235B-A22B-Instruct-2507 into Qwen3-30B-A3B. IW-OPD improves all reported benchmarks in this table.</figcaption>
 
         <p>Across these settings, the claim we make is modest: IW-OPD consistently improves standard OPD in our evaluated regimes, and the pattern is consistent with the finite-budget prefix-compatibility explanation. We do not claim that the same gains must hold for every model family, task, or training recipe.</p>
+
+        <h3>Prefix Weighting Is Orthogonal to Reward Design</h3>
+
+        <p>IW-OPD changes how an already-computed OPD signal is allocated across positions, so it is not tied to a particular advantage or reward design. As one example, <a href="https://arxiv.org/abs/2602.12125">ExOPD</a> (Yang et al., 2026) reformulates OPD as a reinforcement-learning problem with a KL constraint, separates out the reward term, and improves exploration by scaling that reward with a fixed hyperparameter $\lambda$.</p>
+
+        <p>Since IW-OPD supplies prefix-level importance weights, we can apply the same idea on top of ExOPD by making the reward scale prefix-dependent, for example by modulating $\lambda$ with the IW-OPD weight. We call this combination IW-ExOPD. The point of this experiment is broader than the specific ExOPD baseline: it tests whether prefix-level importance weighting can complement another advantage or reward modification method.</p>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Student</th><th>Method</th><th>AIME24</th><th>AIME25</th><th>HMMT25</th><th>HE+</th><th>MBPP+</th><th>Avg</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Teacher Model</td><td>&mdash;</td><td>74.7</td><td>62.8</td><td>44.2</td><td>86.6</td><td>75.1</td><td>68.7</td></tr>
+              <tr><td>Qwen3-4B</td><td>Base</td><td>23.1</td><td>21.4</td><td>10.0</td><td>75.3</td><td>64.5</td><td>38.9</td></tr>
+              <tr><td>Qwen3-4B</td><td>OPD</td><td>55.3</td><td>48.0</td><td>27.1</td><td>77.2</td><td>69.1</td><td>55.3</td></tr>
+              <tr><td>Qwen3-4B</td><td>ExOPD</td><td>57.9</td><td>50.1</td><td>31.7</td><td>78.9</td><td>70.2</td><td>57.8</td></tr>
+              <tr><td>Qwen3-4B</td><td class="win">IW-ExOPD</td><td class="win">59.4 (+1.5)</td><td class="win">51.7 (+1.6)</td><td class="win">32.0 (+0.3)</td><td class="win">80.1 (+1.1)</td><td class="win">71.0 (+0.8)</td><td class="win">58.8 (+1.0)</td></tr>
+              <tr><td>Qwen3-1.7B</td><td>Base</td><td>13.4</td><td>11.0</td><td>6.8</td><td>59.6</td><td>52.5</td><td>28.7</td></tr>
+              <tr><td>Qwen3-1.7B</td><td>OPD</td><td>34.6</td><td>28.7</td><td>15.5</td><td>64.6</td><td>53.7</td><td>39.4</td></tr>
+              <tr><td>Qwen3-1.7B</td><td>ExOPD</td><td>37.6</td><td>31.8</td><td>16.8</td><td>67.2</td><td>55.0</td><td>41.7</td></tr>
+              <tr><td>Qwen3-1.7B</td><td class="win">IW-ExOPD</td><td class="win">38.9 (+1.3)</td><td class="win">33.2 (+1.4)</td><td class="win">18.3 (+1.5)</td><td class="win">68.5 (+1.3)</td><td class="win">57.4 (+2.4)</td><td class="win">43.2 (+1.5)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figcaption>Distillation results with Qwen3-30B-A3B-Instruct-2507 as teacher under small student-teacher overlap. Math results are reported as mean@32 accuracy (%). Methods with subscript $(10)$ are evaluated at training step 10. Bold indicates the best result within each student group.</figcaption>
+
+        <p>IW-ExOPD improves over ExOPD for both Qwen3-4B and Qwen3-1.7B students. This suggests that prefix-level importance weighting is complementary to ExOPD's reward-scaling mechanism, rather than being tied only to vanilla OPD.</p>
 
         <h2 id="ablations">Ablations</h2>
 
