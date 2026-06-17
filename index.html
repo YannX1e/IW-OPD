@@ -663,7 +663,7 @@
         <span class="desktop-title">On the Position Bias of<br>On-Policy Distillation</span>
         <span class="mobile-title">On the Position Bias<br>of On-Policy<br>Distillation</span>
       </h1>
-      <p class="dek">Analysis position bias through the lens of constrained-optimization and reweighting OPD via prefix-importance.</p>
+      <p class="dek">Analyzing position bias through the lens of constrained-optimization and reweighting OPD via prefix-importance.</p>
       <div class="publish-metadata">
         <span>Yan Xie<sup>1*</sup>, Sijie Zhu<sup>1*</sup>, Tiansheng Wen<sup>2</sup>, Bo Chen<sup>1,&dagger;</sup>, Yifei Wang<sup>3,&dagger;</sup></span>
         <span>June 2026</span>
@@ -740,7 +740,7 @@
 
         <p>We find a strong position effect. Early tokens in student rollouts often carry much more useful supervision than late tokens. As the student continues generating, its prefix can drift away from the teacher's high-probability reasoning region. The teacher is still queried, but it is now asked to score tokens under a prefix it may not have produced. Dense supervision is therefore not automatically equally useful supervision.</p>
 
-        <p>We call this <strong>position bias</strong> in OPD. For further diagnose, we conduct controlled studies, and find two interesting phenomena:
+        <p>We call this <strong>position bias</strong> in OPD. To diagnose this further, we conduct controlled studies, and find two interesting phenomena:
 
           (1)Early-token supervision drives OPD performance;
           (2)Teacher-student gap largely persists after OPD training.
@@ -767,8 +767,6 @@
         </div>
 
         <p>OPD gives a token-level loss on every sampled response token, a natural implementation averages those losses uniformly. That is simple, but it assumes the teacher signal is equally useful across positions. Before introducing a weighting rule, we ask a more basic empirical question: if we train on different parts of the same student response, do we get the same effect?</p>
-
-        <p>Reweighting is a common response when training examples are not equally informative. Off-policy imitation can suffer from exposure bias and distribution mismatch, motivating methods such as <a href="https://proceedings.neurips.cc/paper/2015/hash/e995f98d56967d946471af29d7bf99f1-Abstract.html">scheduled sampling</a> and <a href="https://proceedings.mlr.press/v15/ross11a.html">DAgger</a>. Classical <a href="https://arxiv.org/abs/1503.02531">knowledge distillation</a> and <a href="https://aclanthology.org/D16-1139/">sequence-level distillation</a> study how to transfer teacher behavior, while OPD methods such as <a href="https://openreview.net/forum?id=3zKtaqxLhW">GKD</a>, <a href="https://openreview.net/forum?id=5h0qf7IBZZ">MiniLLM</a>, and practical OPD recipes such as the <a href="https://thinkingmachines.ai/blog/on-policy-distillation/">Thinking Machines Lab post</a> supervise student-visited states. Token-selective and curriculum distillation work, including <a href="https://aclanthology.org/2020.emnlp-main.76/">token-level adaptive training</a>, <a href="https://aclanthology.org/2021.findings-emnlp.310/">token-wise curriculum learning</a>, and recent selective KD variants, asks which examples or tokens should receive more weight. Our question is narrower: in on-policy distillation for long autoregressive reasoning, do positions inside the student's own rollout differ enough that uniform token weighting becomes a problem?</p>
 
         <h2 id="position-bias">Position bias</h2>
 
@@ -1210,6 +1208,8 @@ advantage_t = stop_gradient(1 + gamma * w_t) * opd_advantage_t</code></pre>
         <p>The final group shows why we keep OPD as a floor. The practical surrogate works best as extra budget on top of standard OPD, not as a replacement for dense supervision.</p>
 
         <h2 id="discussion">Discussion</h2>
+        
+        <p>Our work is related to OPD methods such as <a href="https://openreview.net/forum?id=3zKtaqxLhW">GKD</a> and <a href="https://openreview.net/forum?id=5h0qf7IBZZ">MiniLLM</a>, as well as practical recipes such as the <a href="https://thinkingmachines.ai/blog/on-policy-distillation/">Thinking Machines Lab post</a> that supervise student-visited states. It is also connected to token-selective and curriculum distillation, including <a href="https://aclanthology.org/2020.emnlp-main.76/">token-level adaptive training</a> and <a href="https://aclanthology.org/2021.findings-emnlp.310/">token-wise curriculum learning</a>, which ask which examples or tokens deserve more weight. The distinction is that we focus specifically on asymmetric positional bias inside the student's own long reasoning rollout: even within a single response, early and late tokens may not be equally useful supervision targets.</p>
 
         <p>The key insight of this work is that OPD supervision is not uniformly reliable along a student-generated trajectory. This creates an <strong>asymmetric position bias</strong>: teacher supervision is often more useful near the beginning of the rollout than near the end. Such bias is not unique to OPD. It may also appear in many methods involving two autoregressive sequence models, such as on-policy RL where samples are drawn from the current policy but updates move toward a new policy. The issue is especially visible in OPD because the teacher-student distribution gap is not known in advance, so we cannot predefine where their trajectories remain compatible.</p>
 
