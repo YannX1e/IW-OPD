@@ -109,39 +109,6 @@
       font-size: 14px;
     }
 
-    .publish-metadata sup,
-    .paper-affiliations sup,
-    .paper-footnotes sup {
-      font-size: 0.72em;
-      line-height: 0;
-    }
-
-    .paper-affiliations,
-    .paper-footnotes {
-      color: var(--muted);
-      font-family: Arial, Helvetica, sans-serif;
-      line-height: 1.45;
-    }
-
-    .paper-affiliations {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 16px;
-      margin-top: 8px;
-      font-size: 13px;
-    }
-
-    .paper-footnotes {
-      margin-top: 5px;
-      font-size: 12px;
-      max-width: 760px;
-    }
-
-    .paper-footnotes span {
-      display: block;
-      margin-top: 2px;
-    }
-
     .post-cover {
       width: calc(100% - 28px);
       max-width: 940px;
@@ -343,6 +310,14 @@
       grid-template-columns: 1fr 1fr;
       gap: 14px;
       align-items: start;
+    }
+
+    .figure-pair .figure-grid {
+      gap: 18px;
+    }
+
+    .figure-pair figcaption {
+      margin-top: 10px;
     }
 
     .figure-grid.three {
@@ -565,20 +540,6 @@
         margin-bottom: 7px;
       }
 
-      .paper-affiliations {
-        display: block;
-        font-size: 12px;
-      }
-
-      .paper-affiliations span {
-        display: block;
-        margin-bottom: 4px;
-      }
-
-      .paper-footnotes {
-        font-size: 11px;
-      }
-
       .cover-grid,
       .figure-grid,
       .figure-grid.three {
@@ -665,18 +626,8 @@
       </h1>
       <p class="dek">Analyzing position bias through the lens of constrained-optimization and reweighting OPD via prefix-importance.</p>
       <div class="publish-metadata">
-        <span>Yan Xie<sup>1*</sup>, Sijie Zhu<sup>1*</sup>, Tiansheng Wen<sup>2</sup>, Bo Chen<sup>1,&dagger;</sup>, Yifei Wang<sup>3,&dagger;</sup></span>
+        <span>Yan Xie, Sijie Zhu, Tiansheng Wen, Bo Chen, Yifei Wang</span>
         <span>June 2026</span>
-      </div>
-      <div class="paper-affiliations">
-        <span><sup>1</sup>Xidian University</span>
-        <span><sup>2</sup>Georgia Institute of Technology</span>
-        <span><sup>3</sup>Amazon AGI SF Lab</span>
-      </div>
-      <div class="paper-footnotes">
-        <span><sup>*</sup>Equal Contribution. {yanxie940, zsj200454}@gmail.com</span>
-        <span><sup>&dagger;</sup>Corresponding Authors: Bo Chen (bchen@mail.xidian.edu.cn) and Yifei Wang (yifeiwg@amazon.com).</span>
-        <span>Acknowledgement: This work was conducted outside of Amazon.</span>
       </div>
     </div>
 
@@ -705,11 +656,11 @@
           </div>
           <div class="cover-equation">
             <p>IW-OPD keeps the standard dense OPD signal, then adds more weight where the student prefix is still compatible with the teacher.</p>
-            <div class="formula">$$\begin{aligned}
-            w_t &= 1-\frac{\sum_{k=1}^{t}|A_k^{\mathrm{OPD}}|}{\sum_{k=1}^{T}|A_k^{\mathrm{OPD}}|}\\
-            \\
-            A_t^{\mathrm{IW\text{-}OPD}} &= (1+\gamma w_t)A_t^{\mathrm{OPD}}
-            \end{aligned}$$</div>
+            <div class="formula">$$A_t^{\mathrm{IW\text{-}OPD}}
+            =
+            \left(\frac{\pi_T}{\pi_\theta}\right)^\alpha
+            \cdot
+            A_t^{\mathrm{OPD}}$$</div>
           </div>
         </div>
       </div>
@@ -753,7 +704,8 @@
 
         <div class="equation-block">
           $$\mathcal{J}_{\mathrm{OPD}}(\theta) =
-          \mathbb{E}_{x,\,y\sim\pi_\theta}
+          \max_\theta
+          -\mathbb{E}_{x,\,y\sim\pi_\theta}
           \sum_{t=1}^T
           \log \frac{\pi_\theta(y_t\mid x,y_{\lt t})}{\pi_T(y_t\mid x,y_{\lt t})}.$$
         </div>
@@ -849,7 +801,9 @@
           $$q_\theta^\star(y)
           =
           \frac{\pi_\theta(y)}{Z_\alpha(\theta)}
-          \left(\frac{\pi_T(y)}{\pi_\theta(y)}\right)^\alpha,
+          r_\theta(y)^\alpha,
+          \qquad
+          r_\theta(y)=\frac{\pi_T(y)}{\pi_\theta(y)},
           \qquad \alpha\in(0,1).$$
         </div>
 
@@ -863,15 +817,16 @@
 
         <p>The local projection identifies the reachable teacher-aligned distribution $q_\theta^\star$. But the data we actually observe during OPD is sampled from $\pi_\theta$, the current student. This mismatch is exactly where importance weighting enters. Similar distribution-correction ideas appear in policy optimization and preference optimization work such as <a href="https://arxiv.org/abs/2507.18071">GSPO</a> and <a href="https://arxiv.org/abs/2305.18290">DPO</a>, although our use here is specifically a prefix-level allocation rule for OPD.</p>
 
-        <p>OPD can only optimize within a local region around the current student policy. Under the constrained-optimization view, the best policy OPD can attain is $q_\theta^\star$, which reweights the base student policy $\pi_\theta$ using the teacher-student gap measured by the likelihood ratio. From the earlier analysis, only tokens with relatively high likelihood ratios provide meaningful OPD learning signals, since other tokens have very low probability of being sampled. Motivated by this, we directly optimize the divergence between $q_\theta^\star$ and the teacher, emphasizing high-probability, teacher-compatible samples:</p>
+        <p>OPD can only optimize within a local region around the current student policy. Under the constrained-optimization view, the best policy OPD can attain is $q_\theta^\star$, which reweights the base student policy $\pi_\theta$ using the teacher-student gap measured by the likelihood ratio. From the earlier analysis, only tokens with relatively high likelihood ratios provide meaningful OPD learning signals, since other tokens have very low probability of being sampled. Motivated by this, we use the projected teacher-aligned policy as the learning objective, emphasizing high-probability, teacher-compatible samples:</p>
 
         <div class="equation-block">
           $$\mathcal{J}_{q_\theta^\star}(\theta)
           =
-          D_{\mathrm{KL}}(q_\theta^\star\|\pi_T).$$
+          \max_\theta \;
+          -D_{\mathrm{KL}}(q_\theta^\star\|\pi_T).$$
         </div>
 
-        <p>Since the projection stays on the boundary of the local KL ball, we can decompose this objective as a fixed local-budget term plus an expectation under $q_\theta^\star$. This is the three-line step that turns the finite-budget view into an importance-weighted objective:</p>
+        <p>Since the projection stays on the boundary of the local KL ball, the positive KL term decomposes into a fixed local-budget term plus an expectation under $q_\theta^\star$. This is the three-line step that turns the finite-budget view into an importance-weighted objective:</p>
 
         <div class="equation-block">
           $$\begin{aligned}
@@ -912,15 +867,19 @@
           r_\theta(y)=\frac{\pi_T(y)}{\pi_\theta(y)}.$$
         </div>
 
-        <p>For token-level OPD, the causal object is the prefix. The corresponding normalized prefix ratio is:</p>
+        <p>For token-level OPD, the causal object is the prefix. Following the main-paper notation, the corresponding normalized prefix ratio is:</p>
 
         <div class="equation-block">
-          $$\tilde r_{\alpha,t}
+          $$\tilde r_t
           =
-          \frac{r_t^\alpha}{Z_{\alpha,t}},
+          \frac{r_t}{Z_{\alpha,t}},
           \qquad
           r_t := r_\theta(y_{\lt t}) =
-          \frac{\pi_T(y_{\lt t})}{\pi_\theta(y_{\lt t})}.$$
+          \frac{\pi_T(y_{\lt t})}{\pi_\theta(y_{\lt t})},
+          \qquad
+          Z_{\alpha,t}
+          =
+          \mathbb{E}_{y_{\lt t}\sim\pi_\theta}[r_t].$$
         </div>
 
         <p>This gives a token-level objective over rollouts sampled from $\pi_\theta$:</p>
@@ -928,10 +887,11 @@
         <div class="equation-block">
           $$\mathcal{J}_{\mathrm{IW}}^\star(\theta)
           =
-          \mathbb{E}_{y\sim\pi_\theta}
+          \max_\theta \;
+          -\mathbb{E}_{y\sim\pi_\theta}
           \left[
           \sum_{t=1}^T
-          \mathrm{sg}[\tilde r_{\alpha,t}]
+          \mathrm{sg}[\tilde r_t]
           \log
           \frac{\pi_\theta(y_t\mid y_{\lt t})}
           {\pi_T(y_t\mid y_{\lt t})}
@@ -952,46 +912,78 @@
           \qquad
           A_t^{\mathrm{IW\text{-}OPD}}
           =
-          \mathrm{sg}[\tilde r_{\alpha,t}]
-          A_t^{\mathrm{OPD}}.$$
+          \mathrm{sg}[\tilde r_t]
+          A_t^{\mathrm{OPD}}
+          =
+          -\mathrm{sg}[\tilde r_t]
+          \left(
+          \log \pi_\theta(y_t\mid y_{\lt t})
+          -
+          \log \pi_T(y_t\mid y_{\lt t})
+          \right).$$
         </div>
 
         <p>This is why the OPD advantage reappears in IW-OPD. The derivation does not introduce a new token loss; it changes the coefficient multiplying the usual OPD policy-gradient signal. Intuitively, uniform OPD treats the observed student distribution as if it were the desired local target. IW-OPD asks how to correct the observed distribution toward the locally reachable teacher-aligned distribution. Prefixes with high teacher-to-student likelihood ratio get more weight; prefixes that have accumulated teacher-student drift get less.</p>
 
         <h2 id="surrogate">The practical surrogate</h2>
 
-        <p>The exact correction is not what we use directly. There are several practical obstacles: prefix probabilities multiply over long sequences, $\alpha$ is tied to the effective update budget, the normalizer $Z_{\alpha,t}$ is an expectation over student prefixes, and signed log-probability gaps can cancel. We therefore keep the importance-weighting principle but replace the exact ratio with a stable proxy.</p>
+        <p>The prefix-ratio objective above gives a clear allocation principle, but using $\tilde r_t$ directly is not stable in finite on-policy training. The practical IW-OPD weight follows the paper's four-step modification: use a log-scaled ratio, correct signed cancellation, normalize within the rollout, and interpolate the result with standard OPD. Before those modifications, the $\alpha$ ablation shows why controlling sharpness alone is not enough.</p>
 
-        <p>We designed the practical weight to preserve the ordering suggested by the derivation while avoiding the instability of the raw likelihood ratio. The first question is whether we can simply use the raw prefix ratio with a tuned exponent $\alpha$.</p>
+        <p>First, direct prefix-ratio weighting is brittle because prefix probabilities multiply over tokens. Even with the exponent $\alpha$, the coefficient can become too sharp as the rollout grows. The first ablation asks whether a tuned $\alpha$ is enough.</p>
 
-        <figure class="single-figure">
-          <div class="figure-card">
-            <img src="blog_assets/exp_comparison.pdf.png" alt="Ablation of alpha values in raw prefix weights.">
+        <p>The companion visualization looks at the same issue token by token. It motivates the first transformation below: a log-space view exposes both the broad downward trend and the local rebounds we want the practical surrogate to avoid.</p>
+
+        <figure class="figure-pair">
+          <div class="figure-grid">
+            <div>
+              <div class="figure-card">
+                <img src="blog_assets/exp_comparison.pdf.png" alt="Ablation of alpha values in raw prefix weights.">
+              </div>
+              <figcaption><strong>Question: can the raw $r_t$ prefix ratio work with the right exponent?</strong> Large $\alpha$ values make the weights too sharp and hurt training; very small values flatten the weights and behave closer to standard OPD. This suggests that $r_t$ is useful as an allocation principle, but brittle as a literal training coefficient.</figcaption>
+            </div>
+            <div>
+              <div class="figure-card">
+                <img src="blog_assets/ideal_weight.pdf.png" alt="Raw prefix weight values across token positions for different alpha values.">
+              </div>
+              <figcaption><strong>Question: what does the signed $r_t$-based weight do token by token?</strong> The broad downward trend matches the position-bias intuition, but local rebounds appear because signed log-probability gaps can cancel. This makes the literal prefix ratio unstable as an update coefficient.</figcaption>
+            </div>
           </div>
-          <figcaption><strong>Question: can the raw prefix ratio work with the right exponent?</strong> Large $\alpha$ values make the weights too sharp and hurt training; very small values flatten the weights and behave closer to standard OPD. This suggests that the exact ratio is a useful derivation target but a brittle training coefficient.</figcaption>
         </figure>
 
-        <p>The second question is what those raw weights look like along a rollout. The visualization below shows the desired broad pattern: earlier tokens usually receive higher prefix weight and later tokens are down-weighted. But it also shows sharp concentration and local rebounds.</p>
-
-        <figure class="single-figure">
-          <div class="figure-card">
-            <img src="blog_assets/ideal_weight.pdf.png" alt="Raw prefix weight values across token positions for different alpha values.">
-          </div>
-          <figcaption><strong>Question: what does the raw prefix weight do token by token?</strong> The raw prefix ratio can decrease with position, which matches the position-bias intuition, but it can also be overly concentrated or rebound locally due to signed log-probability gaps cancel. This is not a stable coefficient to plug into every update.</figcaption>
-        </figure>
-
-        <p>To avoid signed cancellation, we measure accumulated mismatch with an unsigned token-wise gap. We compute the OPD token gap, take its absolute value, and normalize the cumulative sum within the rollout:</p>
+        <p><strong>I. Log scaling.</strong> Instead of manipulating a product of probability ratios, we work in log space. With $A_k^{\mathrm{OPD}}=\log \pi_T(y_k\mid y_{\lt k})-\log \pi_\theta(y_k\mid y_{\lt k})$, the log-scaled prefix score is:</p>
 
         <div class="equation-block">
-          $$w_t =
-          1 -
-          \frac{\sum_{k=1}^{t}
-          \left|A_k^{\mathrm{OPD}}\right|}
-          {\sum_{k=1}^{T}
-          \left|A_k^{\mathrm{OPD}}\right|}.$$
+          $$\tilde r_t^{\mathrm{log}}
+          =
+          \log r_t
+          =
+          \alpha
+          \sum_{k\lt t}
+          \left(
+          \log \pi_T(y_k\mid y_{\lt k})
+          -
+          \log \pi_\theta(y_k\mid y_{\lt k})
+          \right)
+          =
+          \alpha\sum_{k\lt t}A_k^{\mathrm{OPD}}.$$
         </div>
 
-        <p>This cumulative-share weight is not an exact density-ratio estimator. It is a conservative prefix-compatibility proxy. Small accumulated mismatch means the prefix has stayed relatively compatible with the teacher; large accumulated mismatch means the rollout has passed through many teacher-student disagreements.</p>
+        <p>The log-space form is numerically clearer, but it exposes another problem. The accumulation is signed: positive and negative token gaps can cancel, so the prefix score may rebound even after the prefix has passed through several teacher-student mismatches.</p>
+
+        <p><strong>II. Correcting positive-advantage cancellation.</strong> Since rollout tokens are sampled from the student, the teacher-student log gap is often negative on those tokens. Occasionally, the teacher assigns higher probability than the student, producing positive terms that offset the accumulated negative prefix gap. We reduce this cancellation by converting every token-level disagreement into non-positive accumulated discrepancy:</p>
+
+        <div class="equation-block">
+          $$\tilde r_t^{\mathrm{abs}}
+          =
+          \sum_{k\lt t}
+          \left(
+          \mathbb{I}[A_k^{\mathrm{OPD}}<0]A_k^{\mathrm{OPD}}
+          -
+          \mathbb{I}[A_k^{\mathrm{OPD}}>0]A_k^{\mathrm{OPD}}
+          \right)
+          =
+          -\sum_{k\lt t}\left|A_k^{\mathrm{OPD}}\right|.$$
+        </div>
 
         <figure class="single-figure">
           <div class="figure-card">
@@ -1000,24 +992,39 @@
           <figcaption><strong>Question: should prefix discrepancy be signed or unsigned?</strong> The unsigned version performs better in this ablation. The result supports the idea that both directions of disagreement should count as prefix drift, rather than allowing positive and negative gaps to cancel.</figcaption>
         </figure>
 
-        <p>Finally, we use this score as an extra-budget multiplier on top of standard OPD:</p>
+        <p><strong>III. Normalization.</strong> Sign correction makes the discrepancy monotone along a rollout, but its scale can still vary substantially across samples. We therefore normalize within each rollout, mapping the beginning of the sequence near one and prefixes with larger accumulated mismatch toward zero:</p>
+
+        <div class="equation-block">
+          $$\tilde r_t^{\mathrm{norm}}
+          =
+          1 -
+          \frac{\sum_{k\lt t}
+          \left|A_k^{\mathrm{OPD}}\right|}
+          {\sum_{k\lt T}
+          \left|A_k^{\mathrm{OPD}}\right|}.$$
+        </div>
+
+        <p><strong>IV. Interpolation with OPD.</strong> After normalization, end-of-sequence tokens can receive very low weights. Rather than remove dense supervision, IW-OPD interpolates the normalized prefix score with standard OPD:</p>
 
         <div class="equation-block">
           $$\begin{aligned}
-          A_t^{\mathrm{IW\text{-}OPD}}
+          \tilde r_t^{\mathrm{IW\text{-}OPD}}
           &=
-          \mathrm{sg}\left[1+\gamma w_t\right]
-          A_t^{\mathrm{OPD}} \\
+          1+\gamma\tilde r_t^{\mathrm{norm}} \\
           &=
-          \mathrm{sg}\left[
           1+\gamma\left(
           1 -
-          \frac{\sum_{k=1}^{t}\left|A_k^{\mathrm{OPD}}\right|}
-          {\sum_{k=1}^{T}\left|A_k^{\mathrm{OPD}}\right|}
-          \right)
-          \right]
-          A_t^{\mathrm{OPD}}.
+          \frac{\sum_{k\lt t}\left|A_k^{\mathrm{OPD}}\right|}
+          {\sum_{k\lt T}\left|A_k^{\mathrm{OPD}}\right|}
+          \right).
           \end{aligned}$$
+        </div>
+
+        <div class="equation-block">
+          $$A_t^{\mathrm{IW\text{-}OPD}}
+          =
+          \mathrm{sg}\left[\tilde r_t^{\mathrm{IW\text{-}OPD}}\right]
+          A_t^{\mathrm{OPD}}.$$
         </div>
 
         <p>The intuitive form is simple: a prefix with little accumulated teacher-student disagreement receives a larger multiplier, while a prefix that has already accumulated many disagreements falls back closer to standard OPD. This design choice is important. IW-OPD does not remove dense supervision from later tokens. It keeps standard OPD as a floor, detaches the weights, and allocates additional gradient budget to more compatible prefixes. In our main experiments we use $\gamma=0.5$, and $\gamma=0$ exactly recovers standard OPD.</p>
@@ -1028,14 +1035,14 @@
           <li>Sample prompts and generate student rollouts on-policy.</li>
           <li>Evaluate student and teacher log probabilities on the sampled response tokens.</li>
           <li>Compute the standard OPD advantage from the teacher-student log-probability gap.</li>
-          <li>Compute cumulative unsigned prefix discrepancy and convert it to $w_t$.</li>
+          <li>Compute exclusive cumulative unsigned prefix discrepancy and convert it to $\tilde r_t^{\mathrm{norm}}$.</li>
           <li>Train with the same clipped PPO-style objective, replacing $A_t^{\mathrm{OPD}}$ with $A_t^{\mathrm{IW\text{-}OPD}}$.</li>
         </ol>
 
         <pre class="code"><code>delta_t = abs(logprob_teacher_t - logprob_student_t)
-prefix_share_t = cumsum(delta_t) / (sum(delta_t) + eps)
-w_t = 1 - prefix_share_t
-advantage_t = stop_gradient(1 + gamma * w_t) * opd_advantage_t</code></pre>
+norm_r_t = 1 - exclusive_cumsum(delta_t) / sum(delta_t[:-1])
+iw_weight_t = 1 + gamma * norm_r_t
+advantage_t = stop_gradient(iw_weight_t) * opd_advantage_t</code></pre>
 
         <p>The method requires no additional teacher evaluations beyond standard OPD. It changes the allocation of an already-computed signal.</p>
 
@@ -1077,13 +1084,13 @@ advantage_t = stop_gradient(1 + gamma * w_t) * opd_advantage_t</code></pre>
 
         <p>The largest early gain is in the Qwen3-30B-A3B to Qwen3-4B setting, where AIME25 improves by 6.9 points at step 10. We interpret this as evidence that IW-OPD changes learning efficiency, not only the final checkpoint. The result is still bounded by the tested model families and tasks; it does not imply a universal step-count reduction.</p>
 
-        <figure>
+        <!-- <figure>
           <div class="figure-card figure-grid">
             <img src="blog_assets/training_comparison_1.pdf.png" alt="AIME 2025 accuracy during training for OPD and IW-OPD.">
             <img src="blog_assets/pace_comparison.pdf.png" alt="Final score versus compression ratio for standard OPD and IW-OPD.">
           </div>
           <figcaption><strong>Learning curve and scale comparison.</strong> The training curve shows faster AIME25 improvement in the plotted setting. The compression-ratio plot summarizes final performance for a 4B teacher across student scales.</figcaption>
-        </figure>
+        </figure> -->
 
         <h3>Qwen3-30B-A3B teacher</h3>
 
@@ -1111,6 +1118,14 @@ advantage_t = stop_gradient(1 + gamma * w_t) * opd_advantage_t</code></pre>
         <h3>Qwen3-4B teacher</h3>
 
         <p>The 4B teacher setting has larger student-teacher overlap. This is a useful check because, if IW-OPD only worked when the student was very far from the teacher, the gains might disappear here. They become smaller in some cases, but they remain positive across the reported students.</p>
+        
+        <figure>
+          <div class="figure-card figure-grid">
+            <img src="blog_assets/training_comparison_1.pdf.png" alt="AIME 2025 accuracy during training for OPD and IW-OPD.">
+            <img src="blog_assets/pace_comparison.pdf.png" alt="Final score versus compression ratio for standard OPD and IW-OPD.">
+          </div>
+          <figcaption><strong>Learning curve and scale comparison.</strong> The training curve shows faster AIME25 improvement in the plotted setting. The compression-ratio plot summarizes final performance for a 4B teacher across student scales.</figcaption>
+        </figure>
 
         <div class="table-scroll">
           <table>
